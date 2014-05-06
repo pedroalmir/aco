@@ -1,0 +1,16 @@
+Analise do Comportamento do Algoritmo: AntSystem-TSP;;;;;;;;;;
+;;;;;;;;;;
+Numero de Formigas;3;Q;1;;;;;;;
+Alfa;1;Beta;1;;;;;;;
+Quantidade Inicial de Feromonio;0,1;Taxa de Evaporacao;0,3;;;;;;;
+Maximo de Iteracoes;10;Maximo de Execucoes;1;;;;;;;
+;;;;;;;;;;
+Nos Selecionados;[C2, C3, C6, C1, C4, C5];Tempo de Execucao;[00:00:021];;;;;;;
+Custo Total;14;Tempo de Execucao (ms);21;;;;;;;
+;;;;;;;;;;
+;Iteracao 1;Iteracao 2;Iteracao 3;Iteracao 4;Iteracao 5;Iteracao 6;Iteracao 7;Iteracao 8;Iteracao 9;Iteracao 10
+BetterSolution;17;14;15;14;16;14;14;14;14;14
+WorstSolution;25;21;25;15;25;17;26;14;14;17
+Average;21;16,6667;18,3333;14,3333;19,3333;15,3333;19;14;14;15
+StandardDeviation;3,266;3,0912;4,714;0,4714;4,0277;1,2472;5,099;0;0;1,4142
+Elitism;17;14;14;14;14;14;14;14;14;14
