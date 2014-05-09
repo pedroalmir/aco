@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 import com.pedroalmir.model.Ant;
+import com.pedroalmir.model.enums.StrategyAS;
 import com.pedroalmir.model.graph.Edge;
 import com.pedroalmir.model.graph.Graph;
 import com.pedroalmir.model.graph.Node;
@@ -92,25 +93,32 @@ public class AntSystemControllerTSP {
 				/* Evaporação do feromônio */
 				makeEvaporation();
 				/* Atualização do feromônio */
-				makeActualization();
+				makeActualization(this.configuration.getStrategy());
 				/*  */
-				itSolutions.add(getBetterResultAndResetSystem(iteration));
+				IterationSolution iterationSolution = getBetterResultAndResetSystem(iteration);
+				if(iterationSolution != null){
+					itSolutions.add(iterationSolution);
+				}
 				iteration++;
 			}
 			long end = System.currentTimeMillis();
 			
 			/* Reset System */
 			resetSystem();
+			
 			IterationSolution theBest = findTheBest(itSolutions);
-			
-			Solution solutionIT = new Solution("AntSystem-TSP", this.configuration, theBest.getDistance(), end-begin);
-			solutionIT.setIterationSolutions(itSolutions);
-			solutionIT.setTheBestAnt(theBest.getTheBestAnt());
-			
-			solutions.add(solutionIT);
+			if(theBest != null){
+				Solution solutionIT = new Solution(this.configuration, theBest.getDistance(), end-begin);
+				solutionIT.setIterationSolutions(itSolutions);
+				solutionIT.setTheBestAnt(theBest.getTheBestAnt());
+				solutions.add(solutionIT);
+			}
 			execution++;
 		}
 		this.solution = findTheBest(solutions);
+		if(this.solution == null){
+			System.out.println("Não foi possível encontrar um caminho válido para esse problema.");
+		}
 		/* Just for debug */
 		//System.out.println(this.solution);
 		return this.solution;
@@ -133,6 +141,10 @@ public class AntSystemControllerTSP {
 				double pheromone = (nextDouble > 0d) ? (nextDouble) : 0.1;
 				edge.setPheromone(pheromone);
 			}
+		}
+		for(Ant ant : this.ants){
+			/* Reset Ant */
+			ant.reset();
 		}
 	}
 
@@ -254,11 +266,20 @@ public class AntSystemControllerTSP {
 	/* ######################################################################## */
 	
 	/** Actualization */
-	private void makeActualization(){
+	private void makeActualization(StrategyAS strategy){
 		for(Ant ant : this.ants){
-			for(Edge e : ant.getEdgeList()){
-				e.setPheromone(e.getPheromone() + this.configuration.getQ()/calcQualityOfResult(ant));
-				//e.setPheromone(e.getPheromone() + 1/calcQualityOfResult(ant));
+			if(ant.getTabuList().size() == this.nodeCount){
+				for(Edge e : ant.getEdgeList()){
+					if(strategy.equals(StrategyAS.ANT_CYCLE)){
+						e.setPheromone(e.getPheromone() + this.configuration.getQ()/calcQualityOfResult(ant));
+					}else if(strategy.equals(StrategyAS.ANT_DENSITY)){
+						e.setPheromone(e.getPheromone() + this.configuration.getQ());
+					}else if(strategy.equals(StrategyAS.ANT_QUANTITY)){
+						e.setPheromone(e.getPheromone() + this.configuration.getQ()/e.getDistance());
+					}
+				}
+			}else{
+				/*System.out.println("A formiga " + ant.getId() + " não conseguiu construir um caminho nessa iteração.");*/
 			}
 		}
 	}
@@ -342,41 +363,45 @@ public class AntSystemControllerTSP {
 		Ant theBestAnt = null;
 		
 		for(Ant ant : this.getAnts()){
-			double distanceAux = this.calcQualityOfResult(ant);
-			
-			if(distanceAux < betterSolution){
-				betterSolution = distanceAux;
-				distance = distanceAux;
-				theBestAnt = ant.clone();
+			if(ant.getTabuList().size() == this.nodeCount){
+				double distanceAux = this.calcQualityOfResult(ant);
+				
+				if(distanceAux < betterSolution){
+					betterSolution = distanceAux;
+					distance = distanceAux;
+					theBestAnt = ant.clone();
+				}
+				
+				if(distanceAux > worstSolution){
+					worstSolution = distanceAux;
+				}
+				
+				somaSolucoesIteracao += distanceAux;
+				somaSolucoesAoQuadradoIteracao += Math.pow(distanceAux, 2);
 			}
-			
-			if(distanceAux > worstSolution){
-				worstSolution = distanceAux;
-			}
-			
-			somaSolucoesIteracao += distanceAux;
-			somaSolucoesAoQuadradoIteracao += Math.pow(distanceAux, 2);
 			/* Reset Ant */
 			ant.reset();
 		}
 		
-		average = somaSolucoesIteracao/this.getAnts().size();
-		double variancia = (somaSolucoesAoQuadradoIteracao/this.getAnts().size()) - Math.pow(average, 2);
-		standardDeviation = Math.sqrt(variancia);
-		
-		IterationSolution iterationSolution = new IterationSolution(iteration, betterSolution, worstSolution, average, standardDeviation, theBestAnt);
-		iterationSolution.setDistance(distance);
-		
-		if(iterationSolution.getBetterSolution() < this.theBest){
-			iterationSolution.setTheBest(iterationSolution.getBetterSolution());
-			this.setTheBest(iterationSolution.getBetterSolution());
-			this.setTheBestAnt(iterationSolution.getTheBestAnt());
-		}else{
-			iterationSolution.setTheBest(this.theBest);
-			iterationSolution.setTheBestAnt(this.theBestAnt);
+		if(somaSolucoesIteracao != 0.0){
+			average = somaSolucoesIteracao/this.getAnts().size();
+			double variancia = (somaSolucoesAoQuadradoIteracao/this.getAnts().size()) - Math.pow(average, 2);
+			standardDeviation = Math.sqrt(variancia);
+			
+			IterationSolution iterationSolution = new IterationSolution(iteration, betterSolution, worstSolution, average, standardDeviation, theBestAnt);
+			iterationSolution.setDistance(distance);
+			
+			if(iterationSolution.getBetterSolution() < this.theBest){
+				iterationSolution.setTheBest(iterationSolution.getBetterSolution());
+				this.setTheBest(iterationSolution.getBetterSolution());
+				this.setTheBestAnt(iterationSolution.getTheBestAnt());
+			}else{
+				iterationSolution.setTheBest(this.theBest);
+				iterationSolution.setTheBestAnt(this.theBestAnt);
+			}
+			return iterationSolution;
 		}
-		
-		return iterationSolution;
+		return null;
 	}
 	
 	/* ######################################################################## */

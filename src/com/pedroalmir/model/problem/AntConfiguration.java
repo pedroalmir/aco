@@ -3,12 +3,15 @@
  */
 package com.pedroalmir.model.problem;
 
+import com.pedroalmir.model.enums.StrategyAS;
+
 /**
  * @author Pedro Almir
  *
  */
 public class AntConfiguration {
 	
+	private final String algorithmName;
 	private final double alpha;
 	private final double beta;
 	private final double q;
@@ -17,8 +20,10 @@ public class AntConfiguration {
 	private final int numAgents;
 	private final int maxIterations;
 	private final int maxExecutions;
+	private final StrategyAS strategy; 
 	
 	/**
+	 * @param algorithmName
 	 * @param alpha
 	 * @param beta
 	 * @param q
@@ -27,10 +32,11 @@ public class AntConfiguration {
 	 * @param numAgents
 	 * @param maxIterations
 	 * @param maxExecutions
+	 * @param strategy
 	 */
-	public AntConfiguration(double alpha, double beta, double q, double pheromonePersistence, 
-			double initialPheromone, int numAgents, int maxIterations, int maxExecutions) {
-		super();
+	public AntConfiguration(String algorithmName, double alpha, double beta, double q, double pheromonePersistence, 
+			double initialPheromone, int numAgents, int maxIterations, int maxExecutions, StrategyAS strategy) {
+		this.algorithmName = algorithmName;
 		this.alpha = alpha;
 		this.beta = beta;
 		this.q = q;
@@ -39,9 +45,11 @@ public class AntConfiguration {
 		this.numAgents = numAgents;
 		this.maxIterations = maxIterations;
 		this.maxExecutions = maxExecutions;
+		this.strategy = strategy;
 	}
 	
 	/**
+	 * @param algorithmName
 	 * @param alpha
 	 * @param beta
 	 * @param q
@@ -50,9 +58,9 @@ public class AntConfiguration {
 	 * @param numAgents
 	 * @param maxIterations
 	 */
-	public AntConfiguration(double alpha, double beta, double q, double pheromonePersistence, 
-			double initialPheromone, int numAgents, int maxIterations) {
-		super();
+	public AntConfiguration(String algorithmName, double alpha, double beta, double q, double pheromonePersistence, 
+			double initialPheromone, int numAgents, int maxIterations, StrategyAS strategy) {
+		this.algorithmName = algorithmName;
 		this.alpha = alpha;
 		this.beta = beta;
 		this.q = q;
@@ -61,6 +69,7 @@ public class AntConfiguration {
 		this.numAgents = numAgents;
 		this.maxIterations = maxIterations;
 		this.maxExecutions = 1;
+		this.strategy = strategy;
 	}
 	
 	/**
@@ -113,5 +122,19 @@ public class AntConfiguration {
 	 */
 	public int getMaxExecutions() {
 		return maxExecutions;
+	}
+
+	/**
+	 * @return the strategy
+	 */
+	public StrategyAS getStrategy() {
+		return strategy;
+	}
+
+	/**
+	 * @return the algorithmName
+	 */
+	public String getAlgorithmName() {
+		return algorithmName;
 	}
 }
